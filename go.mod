@@ -1,4 +1,4 @@
-module query-overflow
+module harry/query-overflow
 
 go 1.18
 
