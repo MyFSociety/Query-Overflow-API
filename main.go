@@ -1,25 +1,26 @@
 package main
 
 import (
-	"net/http"
-
-	post "harry/query-overflow/internal/posts"
-
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
+// album represents data about a record album.
+
 func main() {
-	router := gin.Default()
+	router := fiber.New()
 
-	// ping route
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "All Good :)",
-		})
-	})
+	// Default config
+	router.Use(cors.New())
 
-	post.Routes(router)
+	// routers
+	router.Get("/", defaultRoute)
 
-	router.Run("localhost:8080")
+	// Start server
+	router.Listen(":8080")
 
+}
+
+func defaultRoute(c *fiber.Ctx) error {
+	return c.JSON(&fiber.Map{"message": "This is the default route"})
 }
