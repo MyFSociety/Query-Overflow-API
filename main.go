@@ -7,8 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-// album represents data about a record album.
-
 func main() {
 	router := fiber.New()
 

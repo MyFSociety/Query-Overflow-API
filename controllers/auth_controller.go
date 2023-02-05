@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Login is the controller for the login route
@@ -30,8 +31,8 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(models.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
 	}
 
+	//check if user exists
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
-
 	defer cancel()
 
 	if err != nil {
