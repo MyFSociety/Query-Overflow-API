@@ -13,8 +13,8 @@ type User struct {
 }
 
 type LoginUser struct {
-	Email    string `json:"email,omitempty" validate:"required"`
-	Password string `json:"password,omitempty" validate:"required"`
+	Email    string `json:"email,omitempty" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8,max=32"`
 }
 
 type SignedDetails struct {
