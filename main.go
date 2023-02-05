@@ -2,13 +2,20 @@ package main
 
 import (
 	"harry/query-overflow/routers"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	router := fiber.New()
+
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 
 	// Default config
 	router.Use(cors.New())
@@ -19,8 +26,14 @@ func main() {
 	// Auth
 	routers.LoginRouters(router)
 
+	// Signup
+	routers.SignUpRouters(router)
+
+	// User
+	routers.UserRouters(router)
+
 	// Start server
-	router.Listen(":8080")
+	router.Listen(":" + os.Getenv("PORT"))
 
 }
 

@@ -70,6 +70,7 @@ func GetAUser(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(models.UserResponse{Status: http.StatusOK, Message: "success", Data: &fiber.Map{"data": user}})
 }
 
+// CreateUser creates a new user
 func CreateUser(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	var user models.User
@@ -77,14 +78,28 @@ func CreateUser(c *fiber.Ctx) error {
 
 	//validate the request body
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(models.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": err.Error()}})
+		return c.Status(http.StatusBadRequest).JSON(models.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": "invalid request body"}})
 	}
 
+	//use the validator library to validate required fields
+	if validationErr := validate.Struct(&user); validationErr != nil {
+		return c.Status(http.StatusBadRequest).JSON(models.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": validationErr.Error()}})
+	}
+
+	//check if the user already exists
+	filter := bson.M{"email": user.Email}
+
+	if err := userCollection.FindOne(ctx, filter).Decode(&user); err == nil {
+		return c.Status(http.StatusBadRequest).JSON(models.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &fiber.Map{"data": "user already exists"}})
+	}
+
+	//hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		panic(err)
 	}
 
+	//create a new user
 	newUser := models.User{
 		Id:       primitive.NewObjectID(),
 		Name:     user.Name,
@@ -92,7 +107,9 @@ func CreateUser(c *fiber.Ctx) error {
 		Password: string(hashedPassword),
 	}
 
+	//insert the user into the db
 	result, err := userCollection.InsertOne(ctx, newUser)
+
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(models.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &fiber.Map{"data": err.Error()}})
 	}
